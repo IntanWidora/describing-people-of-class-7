@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descriptive Text: Describing People</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        heading: ['Fredoka', 'sans-serif'],
+                        body: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#4F46E5',
+                            lightblue: '#06B6D4',
+                            yellow: '#F59E0B',
+                            pink: '#EC4899',
+                            purple: '#8B5CF6',
+                            green: '#10B981',
+                            bg: '#F3F4F6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #F8FAFC;
+        }
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+        }
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased bg-slate-50 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- AUDIO SYNTHESIZER FOR SOUND EFFECTS -->
+    <script>
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            playSuccess() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            },
+            playError() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(180, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            },
+            playClick() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        };
+    </script>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-notification" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl flex items-center space-x-3 text-sm font-bold transition-all duration-300 transform translate-y-20 opacity-0 bg-slate-900 text-white pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-amber-400"></i>
+        <span id="toast-text">Notification message</span>
+    </div>
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-indigo-600 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-md transform hover:rotate-6 transition">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Descriptive Text
+                        </h1>
+                        <p class="text-xs font-semibold text-slate-500">7th Grade English Learning Media</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Desktop) -->
+                <nav class="hidden lg:flex space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button id="nav-home" onclick="switchTab('home')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center space-x-2 text-indigo-600 bg-white shadow-sm">
+                        <i class="fa-solid fa-house"></i> <span>Home</span>
+                    </button>
+                    <button id="nav-materials" onclick="switchTab('materials')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/50 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-book-open"></i> <span>Materials</span>
+                    </button>
+                    <button id="nav-practice" onclick="switchTab('practice')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/50 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-pen-ruler"></i> <span>Practice</span>
+                    </button>
+                    <button id="nav-game" onclick="switchTab('game')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/50 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-gamepad"></i> <span>Mini Game</span>
+                    </button>
+                    <button id="nav-assessment" onclick="switchTab('assessment')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/50 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-square-check"></i> <span>Assessment</span>
+                    </button>
+                    <button id="nav-reflection" onclick="switchTab('reflection')" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/50 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-lightbulb"></i> <span>Reflection</span>
+                    </button>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="p-2 text-slate-600 hover:text-indigo-600 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden lg:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-house text-indigo-500 w-5"></i><span>Home</span>
+            </button>
+            <button onclick="switchTab('materials'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-book-open text-purple-500 w-5"></i><span>Materials</span>
+            </button>
+            <button onclick="switchTab('practice'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-pen-ruler text-pink-500 w-5"></i><span>Practice</span>
+            </button>
+            <button onclick="switchTab('game'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-gamepad text-yellow-500 w-5"></i><span>Mini Game</span>
+            </button>
+            <button onclick="switchTab('assessment'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-square-check text-emerald-500 w-5"></i><span>Assessment</span>
+            </button>
+            <button onclick="switchTab('reflection'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-indigo-50 flex items-center space-x-3">
+                <i class="fa-solid fa-lightbulb text-amber-500 w-5"></i><span>Reflection</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+
+        <!-- ================= HOME SECTION ================= -->
+        <section id="section-home" class="tab-content block space-y-8 animate-fade-in">
+            <!-- Hero Banner -->
+            <div class="relative rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-8 sm:p-12 text-white overflow-hidden shadow-xl">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-extrabold uppercase tracking-wider text-amber-300 border border-white/20">
+                        ✨ Grade 7 English Learning
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold leading-tight">
+                        Mastering Descriptive Text: Describing People!
+                    </h2>
+                    <p class="text-indigo-100 text-base sm:text-lg leading-relaxed">
+                        Hello young explorer! 👋 Welcome to our interactive media. Learn how to paint pictures with words, describe your favorite people, and master the Simple Present Tense through fun activities and mini games!
+                    </p>
+                    <div class="pt-4 flex flex-wrap gap-4">
+                        <button onclick="switchTab('materials')" class="px-6 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold rounded-2xl shadow-lg transition transform hover:-translate-y-1 flex items-center space-x-2">
+                            <span>Start Learning Now</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchTab('game')" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold rounded-2xl transition flex items-center space-x-2">
+                            <i class="fa-solid fa-gamepad text-amber-300"></i>
+                            <span>Play Mini Game</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Menu Quick Access Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <!-- Materials Card -->
+                <div onclick="switchTab('materials')" class="card-hover cursor-pointer bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mt-4 text-slate-800">1. Materials</h3>
+                        <p class="text-xs text-slate-500 mt-2">Definition, structure, adjectives, and Simple Present Tense rules.</p>
+                    </div>
+                    <span class="mt-4 text-xs font-bold text-indigo-600 flex items-center space-x-1">
+                        <span>Explore</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                </div>
+
+                <!-- Practice Card -->
+                <div onclick="switchTab('practice')" class="card-hover cursor-pointer bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-pen-ruler"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mt-4 text-slate-800">2. Practice</h3>
+                        <p class="text-xs text-slate-500 mt-2">Interactive exercises for verbal & nominal sentences.</p>
+                    </div>
+                    <span class="mt-4 text-xs font-bold text-purple-600 flex items-center space-x-1">
+                        <span>Practice</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                </div>
+
+                <!-- Game Card -->
+                <div onclick="switchTab('game')" class="card-hover cursor-pointer bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mt-4 text-slate-800">3. Mini Game</h3>
+                        <p class="text-xs text-slate-500 mt-2">Mystery Detective! Guess who based on descriptions.</p>
+                    </div>
+                    <span class="mt-4 text-xs font-bold text-amber-600 flex items-center space-x-1">
+                        <span>Play Game</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                </div>
+
+                <!-- Assessment Card -->
+                <div onclick="switchTab('assessment')" class="card-hover cursor-pointer bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-square-check"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mt-4 text-slate-800">4. Assessment</h3>
+                        <p class="text-xs text-slate-500 mt-2">Test your understanding with 10 questions & get graded!</p>
+                    </div>
+                    <span class="mt-4 text-xs font-bold text-emerald-600 flex items-center space-x-1">
+                        <span>Take Quiz</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                </div>
+
+                <!-- Reflection Card -->
+                <div onclick="switchTab('reflection')" class="card-hover cursor-pointer bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mt-4 text-slate-800">5. Reflection</h3>
+                        <p class="text-xs text-slate-500 mt-2">Self-evaluations and paragraph writing assistant.</p>
+                    </div>
+                    <span class="mt-4 text-xs font-bold text-pink-600 flex items-center space-x-1">
+                        <span>Reflect</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Learning Objectives Box -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex-shrink-0 flex items-center justify-center text-3xl shadow-lg">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-950">Learning Goals for 7th Graders 🎯</h3>
+                    <ul class="mt-2 text-sm text-indigo-800 space-y-1 font-medium">
+                        <li>✅ Identify the social function/purpose of descriptive texts about people.</li>
+                        <li>✅ Understand generic structures (Identification & Description).</li>
+                        <li>✅ Master Simple Present Tense (Verbal & Nominal) in Positive (+), Negative (-), and Interrogative (?) forms.</li>
+                        <li>✅ Apply descriptive adjectives to portray physical features and personality traits.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MATERIALS SECTION ================= -->
+        <section id="section-materials" class="tab-content hidden space-y-8 animate-fade-in">
+            <!-- Section Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Chapter 1</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Learning Materials</h2>
+                    <p class="text-sm text-slate-500 mt-1">Explore all about Descriptive Text and Simple Present Tense rules.</p>
+                </div>
+                <!-- Sub Navigation Tabs for Materials -->
+                <div class="flex flex-wrap gap-2 bg-slate-200/60 p-1.5 rounded-2xl">
+                    <button onclick="switchMaterialTab('m-concept')" id="mtab-m-concept" class="mat-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-indigo-600 bg-white shadow-sm transition">
+                        1. Concept & Purpose
+                    </button>
+                    <button onclick="switchMaterialTab('m-structure')" id="mtab-m-structure" class="mat-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 transition">
+                        2. Generic Structure
+                    </button>
+                    <button onclick="switchMaterialTab('m-adjectives')" id="mtab-m-adjectives" class="mat-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 transition">
+                        3. Describing Words
+                    </button>
+                    <button onclick="switchMaterialTab('m-grammar')" id="mtab-m-grammar" class="mat-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 transition">
+                        4. Simple Present Tense ⚡
+                    </button>
+                </div>
+            </div>
+
+            <!-- Material Sub-Tab 1: Meaning & Purpose -->
+            <div id="mat-content-m-concept" class="mat-sub-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Meaning Card -->
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-magnifying-glass font-bold"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">What is Descriptive Text?</h3>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            <strong class="text-indigo-600">Descriptive Text</strong> is a text that describes a particular person, place, or thing in detail. 
+                        </p>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            When we describe a person, we tell the reader about their <strong>physical appearance</strong> (what they look like) and their <strong>personality traits</strong> (how they act/behave).
+                        </p>
+                    </div>
+
+                    <!-- Purpose Card -->
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">What is the Social Function / Purpose?</h3>
+                        <div class="bg-purple-50 p-4 rounded-2xl border border-purple-100">
+                            <p class="text-purple-900 font-bold text-sm">
+                                📌 To describe and reveal a specific person in detail.
+                            </p>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            The goal is to give a vivid picture of a specific person so that the reader can picture them clearly in their mind!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Sub-Tab 2: Generic Structure -->
+            <div id="mat-content-m-structure" class="mat-sub-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900">Generic Structure of Descriptive Text</h3>
+                        <p class="text-sm text-slate-500 mt-1">A descriptive text consists of two main sections:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Step 1: Identification -->
+                        <div class="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 space-y-3">
+                            <span class="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-bold">Part 1</span>
+                            <h4 class="text-xl font-bold text-indigo-950">1. Identification</h4>
+                            <p class="text-xs text-indigo-900 leading-relaxed">
+                                Located in the <strong>first paragraph</strong>. It introduces the specific person who is going to be described (e.g., name, relationship, general info).
+                            </p>
+                        </div>
+
+                        <!-- Step 2: Description -->
+                        <div class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 space-y-3">
+                            <span class="px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-bold">Part 2</span>
+                            <h4 class="text-xl font-bold text-purple-950">2. Description</h4>
+                            <p class="text-xs text-purple-900 leading-relaxed">
+                                Located in the <strong>subsequent paragraphs</strong>. It gives specific details about the person, such as physical appearance, clothes, hobbies, habits, and personality.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Example Text -->
+                    <div class="mt-8 border border-slate-200 rounded-2xl overflow-hidden">
+                        <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                            <span class="font-bold text-sm"><i class="fa-solid fa-file-lines text-amber-400 mr-2"></i> Sample Text: "My English Teacher, Mr. Alex"</span>
+                            <span class="text-xs text-slate-400">Click highlighted parts!</span>
+                        </div>
+                        <div class="p-6 space-y-4 bg-slate-50 text-sm leading-relaxed">
+                            <div class="p-4 rounded-xl bg-indigo-100/70 border-l-4 border-indigo-600 text-indigo-950">
+                                <span class="font-bold text-xs uppercase text-indigo-700 block mb-1">[ IDENTIFICATION ]</span>
+                                My favorite English teacher is <strong>Mr. Alex</strong>. He is thirty years old and teaches grade seven at my school. Everyone loves him because he is very friendly.
+                            </div>
+                            <div class="p-4 rounded-xl bg-purple-100/70 border-l-4 border-purple-600 text-purple-950">
+                                <span class="font-bold text-xs uppercase text-purple-700 block mb-1">[ DESCRIPTION ]</span>
+                                Mr. Alex is tall and slim. He has short black hair and friendly brown eyes. He usually wears a neat shirt and glasses. He is very patient and kind to all students. In his free time, he likes playing guitar and reading novels.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Sub-Tab 3: Language Features / Adjectives -->
+            <div id="mat-content-m-adjectives" class="mat-sub-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="text-2xl font-bold text-slate-900">Language Features: Useful Adjectives</h3>
+                    <p class="text-sm text-slate-600">
+                        When describing people, we use <strong>Adjectives (Describing Words)</strong>. Here is your vocabulary toolkit for 7th Grade!
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Physical Appearance Card -->
+                        <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50 space-y-4">
+                            <h4 class="text-lg font-bold text-indigo-600 flex items-center space-x-2">
+                                <i class="fa-solid fa-user text-indigo-500"></i>
+                                <span>Physical Appearance (Looks)</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-indigo-600">Height & Body:</strong>
+                                    Tall, short, slim, chubby, athletic, thin.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-indigo-600">Hair:</strong>
+                                    Long, short, curly, straight, wavy, dark, blonde.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-indigo-600">Face & Eyes:</strong>
+                                    Round, oval, big eyes, sharp nose, bright smile.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-indigo-600">Age & Style:</strong>
+                                    Young, elderly, trendy, neat, handsome, pretty.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personality Traits Card -->
+                        <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50 space-y-4">
+                            <h4 class="text-lg font-bold text-purple-600 flex items-center space-x-2">
+                                <i class="fa-solid fa-heart text-purple-500"></i>
+                                <span>Personality Traits (Character)</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Kind / Friendly:</span> Warm, helpful, caring.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Funny / Cheerful:</span> Makes people laugh, joyful.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Smart / Clever:</span> Quick learner, intelligent.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Diligent / Hardworking:</span> Works hard, disciplined.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Patient:</span> Calm, doesn't get angry easily.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                                    <span class="font-bold text-purple-600">Polite:</span> Well-mannered, respectful.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Sub-Tab 4: Grammar Spotlight - Simple Present Tense -->
+            <div id="mat-content-m-grammar" class="mat-sub-content hidden space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-8">
+                    <div class="border-b border-slate-100 pb-4">
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">Key Grammar</span>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-2">Simple Present Tense</h3>
+                        <p class="text-sm text-slate-600">
+                            We use the <strong>Simple Present Tense</strong> in descriptive texts because we describe facts, general truths, and regular habits of a person.
+                        </p>
+                    </div>
+
+                    <!-- Verbal vs Nominal Selector -->
+                    <div class="flex space-x-4 border-b border-slate-200">
+                        <button onclick="switchGrammarType('verbal')" id="gtab-verbal" class="gram-tab pb-3 font-bold text-sm text-indigo-600 border-b-2 border-indigo-600 transition">
+                            1. Verbal Sentences (Using Action Verbs)
+                        </button>
+                        <button onclick="switchGrammarType('nominal')" id="gtab-nominal" class="gram-tab pb-3 font-bold text-sm text-slate-400 border-b-2 border-transparent hover:text-indigo-600 transition">
+                            2. Nominal Sentences (Using To Be: am/is/are)
+                        </button>
+                    </div>
+
+                    <!-- VERBAL SENTENCES BOX -->
+                    <div id="gram-verbal" class="space-y-6">
+                        <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-xs text-indigo-900">
+                            💡 <strong>Verbal Sentences</strong> use main verbs (actions/habits) like <em>speak, live, wear, play, like, swim</em>.
+                        </div>
+
+                        <!-- Verbal Formulas Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700">
+                                        <th class="p-3 rounded-l-xl">Sentence Type</th>
+                                        <th class="p-3">Formula / Pattern</th>
+                                        <th class="p-3 rounded-r-xl">Examples</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="p-3 font-bold text-emerald-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-xs">+</span>
+                                            <span>Positive (+)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">S + V1 (s/es) + Object</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>She wears</strong> glasses every day.</div>
+                                            <div>• <strong>They play</strong> football together.</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-rose-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center text-xs">-</span>
+                                            <span>Negative (-)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">S + do / does + NOT + V1 + Object</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>She does not (doesn't) wear</strong> glasses.</div>
+                                            <div>• <strong>They do not (don't) play</strong> football.</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-amber-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center text-xs">?</span>
+                                            <span>Interrogative (?)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">Do / Does + S + V1 + Object?</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>Does she wear</strong> glasses?</div>
+                                            <div>• <strong>Do they play</strong> football?</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Rule note: s/es -->
+                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 space-y-1">
+                            <strong class="font-bold">⚠️ Verb S/ES Rules:</strong>
+                            <p>For singular subjects (He, She, It, Mr. Alex), add <strong>-s / -es</strong> to verb in positive sentence (e.g., <em>he plays, she teaches</em>).</p>
+                            <p>For subjects (I, You, We, They), use base verb (e.g., <em>they play, we teach</em>).</p>
+                        </div>
+                    </div>
+
+                    <!-- NOMINAL SENTENCES BOX -->
+                    <div id="gram-nominal" class="hidden space-y-6">
+                        <div class="bg-purple-50 border border-purple-100 p-4 rounded-2xl text-xs text-purple-900">
+                            💡 <strong>Nominal Sentences</strong> do NOT have action verbs. They use <strong>To Be (am / is / are)</strong> followed by Adjectives, Nouns, or Adverbs.
+                        </div>
+
+                        <!-- Nominal Formulas Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700">
+                                        <th class="p-3 rounded-l-xl">Sentence Type</th>
+                                        <th class="p-3">Formula / Pattern</th>
+                                        <th class="p-3 rounded-r-xl">Examples</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="p-3 font-bold text-emerald-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-xs">+</span>
+                                            <span>Positive (+)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">S + is / am / are + Complement (Adj/Noun)</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>He is</strong> very friendly.</div>
+                                            <div>• <strong>They are</strong> 7th grade students.</div>
+                                            <div>• <strong>I am</strong> tall and energetic.</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-rose-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center text-xs">-</span>
+                                            <span>Negative (-)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">S + is / am / are + NOT + Complement</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>He is not (isn't)</strong> friendly.</div>
+                                            <div>• <strong>They are not (aren't)</strong> lazy.</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-bold text-amber-600 flex items-center space-x-2">
+                                            <span class="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center text-xs">?</span>
+                                            <span>Interrogative (?)</span>
+                                        </td>
+                                        <td class="p-3 font-mono text-xs">Is / Am / Are + S + Complement?</td>
+                                        <td class="p-3 text-xs space-y-1">
+                                            <div>• <strong>Is he</strong> friendly?</div>
+                                            <div>• <strong>Are they</strong> students?</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- To Be Helper Box -->
+                        <div class="grid grid-cols-3 gap-4 text-center text-xs font-bold">
+                            <div class="p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
+                                Subject "I" ➔ <span class="text-indigo-900 underline">AM</span>
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
+                                He / She / It / Single Name ➔ <span class="text-indigo-900 underline">IS</span>
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100">
+                                You / We / They / Plural ➔ <span class="text-indigo-900 underline">ARE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PRACTICE SECTION ================= -->
+        <section id="section-practice" class="tab-content hidden space-y-8 animate-fade-in">
+            <div class="border-b border-slate-200 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Chapter 2</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Interactive Practice Zone</h2>
+                    <p class="text-sm text-slate-500 mt-1">Test your grammar & structural knowledge before taking the quiz!</p>
+                </div>
+                <button onclick="switchTab('home')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 rounded-xl text-xs font-bold border border-slate-200 transition flex items-center space-x-2">
+                    <i class="fa-solid fa-house"></i> <span>Back to Home</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Task 1: Verbal vs Nominal Classifier -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-900">Task 1: Identify Sentence Type</h3>
+                            <p class="text-xs text-slate-500">Is the sentence <strong>Verbal</strong> or <strong>Nominal</strong>?</p>
+                        </div>
+                    </div>
+
+                    <div id="practice-task-1" class="space-y-4">
+                        <!-- Sentence Item 1 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q1">
+                            <p class="text-sm font-semibold text-slate-800">1. "My brother <strong>is</strong> very helpful and cheerful."</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q1', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q1', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Sentence Item 2 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q2">
+                            <p class="text-sm font-semibold text-slate-800">2. "She <strong>wears</strong> a red jacket to school."</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q2', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q2', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Sentence Item 3 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q3">
+                            <p class="text-sm font-semibold text-slate-800">3. "They <strong>do not play</strong> basketball on Sundays."</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q3', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q3', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Sentence Item 4 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q4">
+                            <p class="text-sm font-semibold text-slate-800">4. "<strong>Are</strong> you excited about the new school year?"</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q4', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q4', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Sentence Item 5 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q5">
+                            <p class="text-sm font-semibold text-slate-800">5. "He <strong>speaks</strong> English fluently."</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q5', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q5', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Sentence Item 6 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p1-q6">
+                            <p class="text-sm font-semibold text-slate-800">6. "My teacher <strong>is not</strong> in the staffroom today."</p>
+                            <div class="flex space-x-3">
+                                <button onclick="checkTask1('p1-q6', 'nominal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Nominal</button>
+                                <button onclick="checkTask1('p1-q6', 'verbal')" class="px-4 py-2 text-xs font-bold bg-white hover:bg-indigo-50 border border-slate-300 rounded-xl transition">Verbal</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task 2: Sentence Builder / Fill-in-the-Blank -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-900">Task 2: Fill in the Correct Verb/To-Be</h3>
+                            <p class="text-xs text-slate-500">Choose the correct verb form for each gap.</p>
+                        </div>
+                    </div>
+
+                    <div id="practice-task-2" class="space-y-4 text-sm">
+                        <!-- Fill Question 1 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p2-q1">
+                            <p class="font-semibold text-slate-800">
+                                1. Mr. John _____ (be) a kind teacher. He _____ (teach) mathematics.
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkTask2('p2-q1', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">is / teach</button>
+                                <button onclick="checkTask2('p2-q1', true)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">is / teaches</button>
+                                <button onclick="checkTask2('p2-q1', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">are / teaches</button>
+                                <button onclick="checkTask2('p2-q1', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">am / teaching</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Fill Question 2 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p2-q2">
+                            <p class="font-semibold text-slate-800">
+                                2. _____ she _____ (have) long curly hair?
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkTask2('p2-q2', true)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">Does / have</button>
+                                <button onclick="checkTask2('p2-q2', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">Do / has</button>
+                                <button onclick="checkTask2('p2-q2', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">Is / have</button>
+                                <button onclick="checkTask2('p2-q2', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">Does / has</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Fill Question 3 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p2-q3">
+                            <p class="font-semibold text-slate-800">
+                                3. We _____ (not / like) eating bitter food.
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkTask2('p2-q3', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">does not like</button>
+                                <button onclick="checkTask2('p2-q3', true)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">do not like</button>
+                                <button onclick="checkTask2('p2-q3', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">are not like</button>
+                                <button onclick="checkTask2('p2-q3', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">not likes</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+
+                        <!-- Fill Question 4 -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p2-q4">
+                            <p class="font-semibold text-slate-800">
+                                4. My best friends _____ (be) very polite and smart.
+                            </p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkTask2('p2-q4', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">is</button>
+                                <button onclick="checkTask2('p2-q4', true)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">are</button>
+                                <button onclick="checkTask2('p2-q4', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">am</button>
+                                <button onclick="checkTask2('p2-q4', false)" class="p-2 text-xs border rounded-xl bg-white hover:bg-indigo-50">be</button>
+                            </div>
+                            <div class="feedback-msg text-xs font-bold hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task 3: Sentence Form Transformation -->
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-pink-100 text-pink-600 rounded-xl flex items-center justify-center font-bold">
+                        3
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-900">Task 3: Sentence Transformation (+ / - / ?)</h3>
+                        <p class="text-xs text-slate-500">Choose the correct sentence transformation.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <!-- Transformation 1 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p3-q1">
+                        <p class="font-semibold text-slate-800">
+                            1. Change to <strong>Negative (-)</strong>: <br><span class="text-indigo-600 font-normal">"Rina cooks delicious food."</span>
+                        </p>
+                        <div class="space-y-2">
+                            <button onclick="checkTask3('p3-q1', false)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50">Rina do not cook delicious food.</button>
+                            <button onclick="checkTask3('p3-q1', true)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">Rina does not cook delicious food.</button>
+                            <button onclick="checkTask3('p3-q1', false)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50">Rina is not cook delicious food.</button>
+                        </div>
+                        <div class="feedback-msg text-xs font-bold hidden"></div>
+                    </div>
+
+                    <!-- Transformation 2 -->
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" id="p3-q2">
+                        <p class="font-semibold text-slate-800">
+                            2. Change to <strong>Interrogative (?)</strong>: <br><span class="text-indigo-600 font-normal">"They are friendly neighbors."</span>
+                        </p>
+                        <div class="space-y-2">
+                            <button onclick="checkTask3('p3-q2', true)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50 font-medium">Are they friendly neighbors?</button>
+                            <button onclick="checkTask3('p3-q2', false)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50">Do they are friendly neighbors?</button>
+                            <button onclick="checkTask3('p3-q2', false)" class="w-full text-left p-2.5 text-xs border rounded-xl bg-white hover:bg-indigo-50">Is they friendly neighbors?</button>
+                        </div>
+                        <div class="feedback-msg text-xs font-bold hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MINI GAME SECTION ================= -->
+        <section id="section-game" class="tab-content hidden space-y-8 animate-fade-in">
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 space-y-3 max-w-xl">
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-wider text-white border border-white/30">
+                        🕹️ Mini Game
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold">Mystery Detective: Guess Who!</h2>
+                    <p class="text-amber-100 text-xs sm:text-sm">
+                        Read the descriptive clues carefully and click on the suspect avatar that matches the description!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Game Box container -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-8">
+                <!-- Game Stats Header -->
+                <div class="flex justify-between items-center bg-slate-100 p-4 rounded-2xl">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-trophy text-amber-500 text-xl"></i>
+                        <span class="text-sm font-bold text-slate-700">Score: <span id="game-score" class="text-indigo-600 font-black">0</span> pts</span>
+                    </div>
+                    <div class="text-xs font-bold text-slate-500">
+                        Level: <span id="game-level" class="text-purple-600 font-extrabold">1 / 3</span>
+                    </div>
+                    <button onclick="resetGame()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded-xl text-xs font-bold text-slate-700 transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Restart
+                    </button>
+                </div>
+
+                <!-- Game Content Area -->
+                <div id="game-area" class="space-y-6">
+                    <!-- Clue Card -->
+                    <div class="p-6 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+                        <div class="flex items-center space-x-2 text-amber-900 font-bold text-sm">
+                            <i class="fa-solid fa-file-circle-question text-amber-600 text-lg"></i>
+                            <span>Detective's Case Clue:</span>
+                        </div>
+                        <p id="game-clue" class="text-slate-800 font-medium text-base sm:text-lg leading-relaxed italic">
+                            "Loading clue..."
+                        </p>
+                    </div>
+
+                    <!-- Suspect Avatars Choice Grid -->
+                    <div class="space-y-2">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select the matching suspect:</p>
+                        <div id="game-options" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Cards inserted via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="game-complete" class="hidden text-center py-12 space-y-4">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto animate-bounce-gentle">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h3 class="text-3xl font-extrabold text-slate-900">Case Solved! Detective Master! 🎉</h3>
+                    <p class="text-sm text-slate-600">You identified all suspects using descriptive clues accurately!</p>
+                    <button onclick="resetGame()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg transition">
+                        Play Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ASSESSMENT SECTION ================= -->
+        <section id="section-assessment" class="tab-content hidden space-y-8 animate-fade-in">
+            <div class="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Chapter 3</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Final Assessment Quiz</h2>
+                    <p class="text-sm text-slate-500 mt-1">10 multiple choice questions to test your complete mastery.</p>
+                </div>
+                <div class="flex items-center space-x-3 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-2xl">
+                    <i class="fa-solid fa-clock text-emerald-600"></i>
+                    <span class="text-xs font-bold text-emerald-900">Total Questions: 10</span>
+                </div>
+            </div>
+
+            <!-- Quiz Container -->
+            <div id="quiz-container" class="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-sm space-y-8">
+                <!-- Question Header -->
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <span id="quiz-progress-text" class="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                        Question 1 of 10
+                    </span>
+                    <div class="w-36 bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- Question Body -->
+                <div class="space-y-6">
+                    <h3 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+                        Loading question...
+                    </h3>
+
+                    <!-- Choices Grid -->
+                    <div id="quiz-choices" class="grid grid-cols-1 gap-3">
+                        <!-- Choices injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Quiz Navigation Controls -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                    <button id="quiz-prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition disabled:opacity-40">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Previous
+                    </button>
+                    <button id="quiz-next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-md">
+                        Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Result Box (Hidden until done) -->
+            <div id="quiz-result-card" class="hidden bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 shadow-xl text-center space-y-6">
+                <div class="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-5xl mx-auto shadow-inner">
+                    <i class="fa-solid fa-medal"></i>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-extrabold text-slate-900">Quiz Completed!</h3>
+                    <p class="text-sm text-slate-500 mt-1">Here is your descriptive text mastery score:</p>
+                </div>
+
+                <div class="inline-block px-8 py-4 bg-indigo-50 border border-indigo-100 rounded-3xl">
+                    <span class="text-5xl font-black text-indigo-600" id="final-score-val">0</span>
+                    <span class="text-xl font-bold text-indigo-400"> / 100</span>
+                </div>
+
+                <p id="quiz-feedback-text" class="text-base font-semibold text-slate-700">
+                    Great effort! Keep practicing your descriptive adjectives and present tense.
+                </p>
+
+                <div class="pt-4 flex flex-wrap justify-center gap-4">
+                    <button onclick="restartQuiz()" class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl text-xs transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Retake Assessment
+                    </button>
+                    <button onclick="switchTab('reflection')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs transition shadow-md">
+                        Go to Reflection <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= REFLECTION SECTION ================= -->
+        <section id="section-reflection" class="tab-content hidden space-y-8 animate-fade-in">
+            <div class="border-b border-slate-200 pb-6">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Chapter 4</span>
+                <h2 class="text-3xl font-extrabold text-slate-900">Student Reflection & Writing</h2>
+                <p class="text-sm text-slate-500 mt-1">Reflect on what you learned and write your first description!</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Self-Check Evaluation -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-face-smile text-amber-500"></i>
+                        <span>Self Check Scale</span>
+                    </h3>
+                    <p class="text-xs text-slate-500">How comfortable do you feel with these topics?</p>
+
+                    <div class="space-y-4 text-sm">
+                        <!-- Topic 1 -->
+                        <div class="space-y-2 p-4 bg-slate-50 rounded-2xl">
+                            <span class="font-bold text-slate-800 text-xs">1. I can explain the purpose & generic structure of descriptive text.</span>
+                            <div class="flex justify-between items-center pt-2">
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r1" class="text-indigo-600"> <span>Need help 😟</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r1" class="text-indigo-600"> <span>Getting there 🙂</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r1" class="text-indigo-600" checked> <span>Got it! 😎</span></label>
+                            </div>
+                        </div>
+
+                        <!-- Topic 2 -->
+                        <div class="space-y-2 p-4 bg-slate-50 rounded-2xl">
+                            <span class="font-bold text-slate-800 text-xs">2. I can differentiate Verbal and Nominal sentences in Simple Present Tense.</span>
+                            <div class="flex justify-between items-center pt-2">
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r2" class="text-indigo-600"> <span>Need help 😟</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r2" class="text-indigo-600"> <span>Getting there 🙂</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r2" class="text-indigo-600" checked> <span>Got it! 😎</span></label>
+                            </div>
+                        </div>
+
+                        <!-- Topic 3 -->
+                        <div class="space-y-2 p-4 bg-slate-50 rounded-2xl">
+                            <span class="font-bold text-slate-800 text-xs">3. I can use adjectives to describe a person's features and personality.</span>
+                            <div class="flex justify-between items-center pt-2">
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r3" class="text-indigo-600"> <span>Need help 😟</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r3" class="text-indigo-600"> <span>Getting there 🙂</span></label>
+                                <label class="flex items-center space-x-1 text-xs text-slate-600 cursor-pointer"><input type="radio" name="r3" class="text-indigo-600" checked> <span>Got it! 😎</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Text Writer Prompt -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-feather text-indigo-500"></i>
+                        <span>Write Your Description! ✍️</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Write a short descriptive text (3-5 sentences) about your <strong>best friend or teacher</strong>. Make sure to include an <em>Identification</em> and a <em>Description</em>!
+                    </p>
+
+                    <div class="space-y-3">
+                        <textarea id="reflection-writer" rows="5" placeholder="Example: My best friend is Maya (Identification). She is tall and has short black hair. She is very helpful and friendly to everyone (Description)..." class="w-full p-4 border border-slate-200 rounded-2xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></textarea>
+                        
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span id="word-count" class="text-xs font-bold text-slate-400">0 words</span>
+                            <div class="flex space-x-2">
+                                <button onclick="copyReflectionText()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center space-x-1">
+                                    <i class="fa-regular fa-copy"></i>
+                                    <span>Copy Text</span>
+                                </button>
+                                <button onclick="submitWriting()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-1">
+                                    <span>Submit Description</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="writing-feedback" class="hidden p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 font-bold">
+                        🎉 Great job writing your descriptive paragraph! You are now a certified 7th Grade Descriptive Text Master!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 space-y-1">
+            <p>© 2026 Interactive English Learning Media — Grade 7 Descriptive Text</p>
+            <p>Designed for engaging, accessible, and fun classroom learning.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        // --- TOAST NOTIFICATION SYSTEM (Replaces alert) ---
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast-notification');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.innerText = msg;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- 1. TAB SWITCHING LOGIC ---
+        function switchTab(tabId) {
+            AudioFX.playClick();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-white', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeSection = document.getElementById(`section-${tabId}`);
+            if (activeSection) activeSection.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('text-indigo-600', 'bg-white', 'shadow-sm');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- 2. MATERIAL SUB-TAB LOGIC ---
+        function switchMaterialTab(matId) {
+            AudioFX.playClick();
+            document.querySelectorAll('.mat-sub-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.mat-tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-white', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`mat-content-${matId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`mtab-${matId}`);
+            activeBtn.classList.add('text-indigo-600', 'bg-white', 'shadow-sm');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        function switchGrammarType(type) {
+            AudioFX.playClick();
+            const verbalBox = document.getElementById('gram-verbal');
+            const nominalBox = document.getElementById('gram-nominal');
+            const tabV = document.getElementById('gtab-verbal');
+            const tabN = document.getElementById('gtab-nominal');
+
+            if (type === 'verbal') {
+                verbalBox.classList.remove('hidden');
+                nominalBox.classList.add('hidden');
+                tabV.classList.add('text-indigo-600', 'border-indigo-600');
+                tabV.classList.remove('text-slate-400', 'border-transparent');
+                tabN.classList.remove('text-indigo-600', 'border-indigo-600');
+                tabN.classList.add('text-slate-400', 'border-transparent');
+            } else {
+                nominalBox.classList.remove('hidden');
+                verbalBox.classList.add('hidden');
+                tabN.classList.add('text-indigo-600', 'border-indigo-600');
+                tabN.classList.remove('text-slate-400', 'border-transparent');
+                tabV.classList.remove('text-indigo-600', 'border-indigo-600');
+                tabV.classList.add('text-slate-400', 'border-transparent');
+            }
+        }
+
+        // --- 3. PRACTICE TASKS LOGIC ---
+        function checkTask1(itemId, userChoice) {
+            const answers = {
+                'p1-q1': 'nominal',
+                'p1-q2': 'verbal',
+                'p1-q3': 'verbal',
+                'p1-q4': 'nominal',
+                'p1-q5': 'verbal',
+                'p1-q6': 'nominal'
+            };
+
+            const container = document.getElementById(itemId);
+            const feedback = container.querySelector('.feedback-msg');
+            feedback.classList.remove('hidden');
+
+            if (userChoice === answers[itemId]) {
+                AudioFX.playSuccess();
+                feedback.className = "feedback-msg text-xs font-bold text-emerald-600 mt-2";
+                feedback.innerHTML = "✓ Correct! Great job!";
+            } else {
+                AudioFX.playError();
+                feedback.className = "feedback-msg text-xs font-bold text-rose-600 mt-2";
+                feedback.innerHTML = "✗ Incorrect. Remember if it uses a main action verb or to be (is/am/are).";
+            }
+        }
+
+        function checkTask2(itemId, isCorrect) {
+            const container = document.getElementById(itemId);
+            const feedback = container.querySelector('.feedback-msg');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                AudioFX.playSuccess();
+                feedback.className = "feedback-msg text-xs font-bold text-emerald-600 mt-2";
+                feedback.innerHTML = "✓ Correct conjugation! Excellent!";
+            } else {
+                AudioFX.playError();
+                feedback.className = "feedback-msg text-xs font-bold text-rose-600 mt-2";
+                feedback.innerHTML = "✗ Incorrect! Remember: Singular subject (He/She) takes verb + s/es and 'is'.";
+            }
+        }
+
+        function checkTask3(itemId, isCorrect) {
+            const container = document.getElementById(itemId);
+            const feedback = container.querySelector('.feedback-msg');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                AudioFX.playSuccess();
+                feedback.className = "feedback-msg text-xs font-bold text-emerald-600 mt-2";
+                feedback.innerHTML = "✓ Correct transformation!";
+            } else {
+                AudioFX.playError();
+                feedback.className = "feedback-msg text-xs font-bold text-rose-600 mt-2";
+                feedback.innerHTML = "✗ Incorrect! Pay attention to Subject-Verb agreement or To-Be structure.";
+            }
+        }
+
+        // --- 4. MINI GAME LOGIC ---
+        const gameData = [
+            {
+                clue: "I am looking for a boy. He is tall and athletic. He has short black hair and brown eyes. He wears a blue shirt and smiles brightly.",
+                correctId: 1,
+                options: [
+                    { id: 1, name: "Lucas", desc: "Tall, short black hair, blue shirt", icon: "fa-user-ninja", color: "from-blue-400 to-indigo-600" },
+                    { id: 2, name: "David", desc: "Chubby, blonde hair, green shirt", icon: "fa-user-doctor", color: "from-emerald-400 to-teal-600" },
+                    { id: 3, name: "Leo", desc: "Short, red curly hair, yellow shirt", icon: "fa-user-astronaut", color: "from-amber-400 to-orange-600" }
+                ]
+            },
+            {
+                clue: "She is a kind girl. She has long curly brown hair and wears glasses. She is wearing a purple sweater and loves reading books.",
+                correctId: 2,
+                options: [
+                    { id: 1, name: "Emma", desc: "Short straight black hair, no glasses", icon: "fa-user-tie", color: "from-pink-400 to-rose-600" },
+                    { id: 2, name: "Sophia", desc: "Long curly hair, glasses, purple sweater", icon: "fa-user-graduate", color: "from-purple-400 to-indigo-600" },
+                    { id: 3, name: "Mia", desc: "Blonde ponytail, red dress", icon: "fa-user-nurse", color: "from-amber-400 to-yellow-500" }
+                ]
+            },
+            {
+                clue: "This person is a teacher. He is elderly, has white hair, wears glasses, and has a grey suit. He looks very wise and friendly.",
+                correctId: 3,
+                options: [
+                    { id: 1, name: "Mr. Ben", desc: "Young, brown hair, casual clothes", icon: "fa-user-secret", color: "from-slate-400 to-slate-600" },
+                    { id: 2, name: "Mr. Ray", desc: "Tall, bald head, blue sweater", icon: "fa-user-gear", color: "from-cyan-400 to-blue-600" },
+                    { id: 3, name: "Mr. Arthur", desc: "White hair, glasses, grey suit", icon: "fa-user-tie", color: "from-indigo-400 to-purple-600" }
+                ]
+            }
+        ];
+
+        let currentLevel = 0;
+        let gameScore = 0;
+
+        function loadGameLevel() {
+            if (currentLevel >= gameData.length) {
+                document.getElementById('game-area').classList.add('hidden');
+                document.getElementById('game-complete').classList.remove('hidden');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                return;
+            }
+
+            const level = gameData[currentLevel];
+            document.getElementById('game-level').innerText = `${currentLevel + 1} / ${gameData.length}`;
+            document.getElementById('game-clue').innerText = level.clue;
+
+            const optsContainer = document.getElementById('game-options');
+            optsContainer.innerHTML = '';
+
+            level.options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = "card-hover cursor-pointer p-6 bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center space-y-3 transition";
+                btn.onclick = () => selectSuspect(opt.id);
+
+                btn.innerHTML = `
+                    <div class="w-16 h-16 bg-gradient-to-tr ${opt.color} rounded-2xl flex items-center justify-center text-white text-3xl shadow-md">
+                        <i class="fa-solid ${opt.icon}"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800">${opt.name}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${opt.desc}</p>
+                    </div>
+                `;
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function selectSuspect(selectedId) {
+            const level = gameData[currentLevel];
+            if (selectedId === level.correctId) {
+                AudioFX.playSuccess();
+                gameScore += 100;
+                document.getElementById('game-score').innerText = gameScore;
+                currentLevel++;
+                showToast("✓ Correct suspect identified!");
+                loadGameLevel();
+            } else {
+                AudioFX.playError();
+                showToast("❌ Wrong suspect! Read the descriptive clue again.", true);
+            }
+        }
+
+        function resetGame() {
+            currentLevel = 0;
+            gameScore = 0;
+            document.getElementById('game-score').innerText = '0';
+            document.getElementById('game-area').classList.remove('hidden');
+            document.getElementById('game-complete').classList.add('hidden');
+            loadGameLevel();
+        }
+
+        // --- 5. ASSESSMENT QUIZ LOGIC ---
+        const quizData = [
+            {
+                q: "1. What is the main purpose of a descriptive text about a person?",
+                options: [
+                    "A) To tell a fictional bedtime story",
+                    "B) To describe and reveal a specific person in detail",
+                    "C) To explain steps on how to bake a cake",
+                    "D) To persuade readers to buy something"
+                ],
+                answer: 1
+            },
+            {
+                q: "2. Which of the following is the correct generic structure of a descriptive text?",
+                options: [
+                    "A) Orientation - Complication - Resolution",
+                    "B) Goal - Materials - Steps",
+                    "C) Identification - Description",
+                    "D) Thesis - Arguments - Reiteration"
+                ],
+                answer: 2
+            },
+            {
+                q: "3. Where is the 'Identification' section usually found in a descriptive text?",
+                options: [
+                    "A) In the last paragraph",
+                    "B) In the first paragraph",
+                    "C) In the middle paragraph only",
+                    "D) It is optional and not needed"
+                ],
+                answer: 1
+            },
+            {
+                q: "4. Complete the sentence: 'My mother _____ short wavy hair and blue eyes.'",
+                options: ["A) have", "B) has", "C) is", "D) are"],
+                answer: 1
+            },
+            {
+                q: "5. Complete the nominal sentence: 'They _____ very hardworking students.'",
+                options: ["A) am", "B) is", "C) are", "D) be"],
+                answer: 2
+            },
+            {
+                q: "6. Which sentence is a NEGATIVE verbal sentence in Simple Present Tense?",
+                options: [
+                    "A) She is not a teacher.",
+                    "B) They do not play football on rainy days.",
+                    "C) Is he tall and thin?",
+                    "D) I am not tired."
+                ],
+                answer: 1
+            },
+            {
+                q: "7. Which of the following words is an ADJECTIVE used for personality?",
+                options: ["A) Tall", "B) Friendly", "C) Straight hair", "D) Brown eyes"],
+                answer: 1
+            },
+            {
+                q: "8. Change into interrogative form (?): 'He wears glasses.'",
+                options: [
+                    "A) Is he wear glasses?",
+                    "B) Does he wear glasses?",
+                    "C) Do he wears glasses?",
+                    "D) Did he wear glasses?"
+                ],
+                answer: 1
+            },
+            {
+                q: "9. 'Mr. Alex is tall and slim.' This sentence belongs to which part of the text structure?",
+                options: [
+                    "A) Identification",
+                    "B) Description",
+                    "C) Re-orientation",
+                    "D) Title only"
+                ],
+                answer: 1
+            },
+            {
+                q: "10. Select the CORRECT positive verbal sentence for subject 'She':",
+                options: [
+                    "A) She teach English every day.",
+                    "B) She teaches English every day.",
+                    "C) She is teach English every day.",
+                    "D) She teaching English every day."
+                ],
+                answer: 1
+            }
+        ];
+
+        let currentQIndex = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+
+        function loadQuestion() {
+            const q = quizData[currentQIndex];
+            document.getElementById('quiz-question-text').innerText = q.q;
+            document.getElementById('quiz-progress-text').innerText = `Question ${currentQIndex + 1} of ${quizData.length}`;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentQIndex + 1) / quizData.length) * 100}%`;
+
+            const choicesContainer = document.getElementById('quiz-choices');
+            choicesContainer.innerHTML = '';
+
+            q.options.forEach((optText, optIdx) => {
+                const isSelected = userAnswers[currentQIndex] === optIdx;
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-2xl text-xs sm:text-sm font-semibold border transition flex items-center justify-between ${
+                    isSelected ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`;
+                btn.onclick = () => selectQuizAnswer(optIdx);
+
+                btn.innerHTML = `
+                    <span>${optText}</span>
+                    <span class="w-5 h-5 rounded-full border ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300'} flex items-center justify-center text-[10px]">
+                        ${isSelected ? '✓' : ''}
+                    </span>
+                `;
+                choicesContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-prev-btn').disabled = currentQIndex === 0;
+
+            const nextBtn = document.getElementById('quiz-next-btn');
+            if (currentQIndex === quizData.length - 1) {
+                nextBtn.innerHTML = `Submit Quiz <i class="fa-solid fa-check ml-1"></i>`;
+                nextBtn.className = "px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md";
+            } else {
+                nextBtn.innerHTML = `Next <i class="fa-solid fa-chevron-right ml-1"></i>`;
+                nextBtn.className = "px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-md";
+            }
+        }
+
+        function selectQuizAnswer(optIndex) {
+            AudioFX.playClick();
+            userAnswers[currentQIndex] = optIndex;
+            loadQuestion();
+        }
+
+        function nextQuestion() {
+            AudioFX.playClick();
+            if (userAnswers[currentQIndex] === null) {
+                showToast("Please select an answer first!", true);
+                return;
+            }
+
+            if (currentQIndex < quizData.length - 1) {
+                currentQIndex++;
+                loadQuestion();
+            } else {
+                calculateScore();
+            }
+        }
+
+        function prevQuestion() {
+            AudioFX.playClick();
+            if (currentQIndex > 0) {
+                currentQIndex--;
+                loadQuestion();
+            }
+        }
+
+        function calculateScore() {
+            let correctCount = 0;
+            userAnswers.forEach((ans, idx) => {
+                if (ans === quizData[idx].answer) correctCount++;
+            });
+
+            const score = (correctCount / quizData.length) * 100;
+            document.getElementById('quiz-container').classList.add('hidden');
+            const resultCard = document.getElementById('quiz-result-card');
+            resultCard.classList.remove('hidden');
+
+            document.getElementById('final-score-val').innerText = score;
+
+            if (score >= 80) {
+                AudioFX.playSuccess();
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                document.getElementById('quiz-feedback-text').innerText = "🌟 Outstanding! You are an expert at descriptive texts!";
+            } else if (score >= 60) {
+                AudioFX.playSuccess();
+                document.getElementById('quiz-feedback-text').innerText = "👍 Good job! Review the materials once more to get 100%!";
+            } else {
+                AudioFX.playError();
+                document.getElementById('quiz-feedback-text').innerText = "💪 Keep learning! Review the Simple Present Tense rules and try again.";
+            }
+        }
+
+        function restartQuiz() {
+            currentQIndex = 0;
+            userAnswers.fill(null);
+            document.getElementById('quiz-result-card').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // --- 6. REFLECTION WRITING COUNTER & COPY ---
+        document.getElementById('reflection-writer').addEventListener('input', function(e) {
+            const text = e.target.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            document.getElementById('word-count').innerText = `${words} words`;
+        });
+
+        function copyReflectionText() {
+            const textArea = document.getElementById('reflection-writer');
+            if (!textArea.value.trim()) {
+                showToast("Nothing to copy! Write something first.", true);
+                return;
+            }
+            textArea.select();
+            document.execCommand('copy');
+            showToast("Copied writing to clipboard! 📋");
+        }
+
+        function submitWriting() {
+            const text = document.getElementById('reflection-writer').value.trim();
+            if (text.length < 15) {
+                showToast("Please write at least 2-3 sentences for your description!", true);
+                return;
+            }
+            AudioFX.playSuccess();
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+            document.getElementById('writing-feedback').classList.remove('hidden');
+            showToast("Description submitted successfully! 🎉");
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            loadGameLevel();
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
